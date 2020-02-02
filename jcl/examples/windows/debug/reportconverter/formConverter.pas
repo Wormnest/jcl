@@ -181,12 +181,14 @@ end;
 
 procedure TfrmConverter.btnReportFileClick(Sender: TObject);
 begin
+  dlgOpen.FilterIndex := 1;
   if dlgOpen.Execute then
     txtReportFile.Text := dlgOpen.FileName;
 end;
 
 procedure TfrmConverter.btnMapFileClick(Sender: TObject);
 begin
+  dlgOpen.FilterIndex := 2;
   if dlgOpen.Execute then
     txtMapFile.Text := dlgOpen.FileName;
 end;

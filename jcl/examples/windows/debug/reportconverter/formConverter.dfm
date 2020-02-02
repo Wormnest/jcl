@@ -58,6 +58,9 @@ object frmConverter: TfrmConverter
     OnClick = btnMapFileClick
   end
   object dlgOpen: TOpenDialog
+    Filter = 
+      'All files (*.*)|*.*|Map files (*.map)|*.map|Text files (*.txt)|*' +
+      '.txt'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Left = 392
     Top = 51
