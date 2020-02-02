@@ -89,6 +89,8 @@ var
   s: string;
   VA: DWORD;
   Info: TJclLocationInfo;
+  nStackLines,
+  nStackLinesConverted: Integer;
 begin
   FScanner := TJclMapScanner.Create(AMap);
   ls := TStringList.Create;
@@ -98,27 +100,39 @@ begin
       Exit;
     lInStackList := False;
     i := 0;
+    nStackLines := 0;
+    nStackLinesConverted := 0;
     while i < ls.Count do
     begin
       if (Copy(ls[i], 1, 3) = '---') then
         if lInStackList then
-          Break
-        else if Copy(ls[i+1], 1, 10) = 'Stack list' then
-        begin
-          lInStackList := True;
-          Inc(i, 2);
-        end;
+          // Multiple threads can have multiple stack lists
+          lInStackList := False;
+      if Copy(ls[i], 1, 10) = 'Stack list' then
+      begin
+        lInStackList := True;
+        Inc(i);
+      end;
       if lInStackList and (Copy(ls[i], 1, 1) = '(') then
       begin
-        s := '$' + Copy(ls[i], 2, 8);
-        VA := DWORD(StrToInt64(s));
-        if GetVALocationInfo(VA, Info) then
-          ls[i] := ls[i] + FormatInfo(Info);
+        Inc(nStackLines);
+         // Only try to add info in case it doesn't have info yet.
+         // If it is a location from a dll or something it usually already has some info.
+        if (ls[i][Length(ls[i])] = ']') then
+        begin
+          s := '$' + Copy(ls[i], 2, 8);
+          VA := DWORD(StrToInt64(s));
+          if GetVALocationInfo(VA, Info) then begin
+            ls[i] := ls[i] + FormatInfo(Info);
+            Inc(nStackLinesConverted);
+          end;
+        end;
       end;
       Inc(i);
     end;
     ls.SaveToFile(AOutput);
-    ShowMessage('Successfully converted. Output filename:' + #13#10#13#10 + AOutput);
+    ShowMessage(Format('Converted %d of %d stack trace lines.' + #13#10#13#10 +
+      'Output filename:' + #13#10 + AOutput, [nStackLinesConverted, nStackLines]));
   finally
     ls.Free;
   end;
